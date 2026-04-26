@@ -51,9 +51,7 @@
     bookmarkBtn.title = "Save Moment (Alt+B)";
     
     bookmarkBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#FFD700" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-      </svg>
+      <span style="font-size: 32px; line-height: 1;">🔖</span>
     `;
 
     Object.assign(bookmarkBtn.style, {
@@ -61,7 +59,7 @@
       alignItems: "center",
       justifyContent: "center",
       background: "rgba(0, 0, 0, 0.6)",
-      border: "2px solid #FFD700",
+      border: "2px solid #ff4d4d",
       borderRadius: "12px",
       width: "52px",
       height: "52px",
@@ -69,18 +67,18 @@
       margin: "0 12px",
       transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
       zIndex: "9999",
-      boxShadow: "0 0 10px rgba(255, 215, 0, 0.3)"
+      boxShadow: "0 0 10px rgba(255, 77, 77, 0.3)"
     });
 
     bookmarkBtn.onmouseenter = () => { 
       bookmarkBtn.style.transform = "scale(1.2)";
       bookmarkBtn.style.background = "rgba(0, 0, 0, 0.8)";
-      bookmarkBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.6)";
+      bookmarkBtn.style.boxShadow = "0 0 20px rgba(255, 77, 77, 0.6)";
     };
     bookmarkBtn.onmouseleave = () => { 
       bookmarkBtn.style.transform = "scale(1)";
       bookmarkBtn.style.background = "rgba(0, 0, 0, 0.6)";
-      bookmarkBtn.style.boxShadow = "0 0 10px rgba(255, 215, 0, 0.3)";
+      bookmarkBtn.style.boxShadow = "0 0 10px rgba(255, 77, 77, 0.3)";
     };
     
     bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
