@@ -40,52 +40,72 @@
     });
   };
 
-  const newVideoLoaded = () => {
-    const bookmarkBtnExists = document.querySelector(".bookmark-btn");
+  const injectBookmarkButton = () => {
+    const youtubeLeftControls = document.querySelector(".ytp-left-controls");
+    const youtubePlayer = document.querySelector("video");
 
+    if (!youtubeLeftControls || !youtubePlayer || document.querySelector(".bookmark-btn")) return;
+
+    const bookmarkBtn = document.createElement("button");
+    bookmarkBtn.className = "bookmark-btn";
+    bookmarkBtn.title = "Save Moment (Alt+B)";
+    
+    bookmarkBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#FFD700" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+    `;
+
+    Object.assign(bookmarkBtn.style, {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "rgba(0, 0, 0, 0.6)",
+      border: "2px solid #FFD700",
+      borderRadius: "12px",
+      width: "52px",
+      height: "52px",
+      cursor: "pointer",
+      margin: "0 12px",
+      transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+      zIndex: "9999",
+      boxShadow: "0 0 10px rgba(255, 215, 0, 0.3)"
+    });
+
+    bookmarkBtn.onmouseenter = () => { 
+      bookmarkBtn.style.transform = "scale(1.2)";
+      bookmarkBtn.style.background = "rgba(0, 0, 0, 0.8)";
+      bookmarkBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.6)";
+    };
+    bookmarkBtn.onmouseleave = () => { 
+      bookmarkBtn.style.transform = "scale(1)";
+      bookmarkBtn.style.background = "rgba(0, 0, 0, 0.6)";
+      bookmarkBtn.style.boxShadow = "0 0 10px rgba(255, 215, 0, 0.3)";
+    };
+    
+    bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
+    youtubeLeftControls.appendChild(bookmarkBtn);
+  };
+
+  const newVideoLoaded = () => {
     fetchBookmarks((bookmarks) => {
       currentVideoBookmarks = bookmarks;
     });
+    injectBookmarkButton();
+  };
 
-    if (!bookmarkBtnExists) {
-      youtubeLeftControls = document.querySelector(".ytp-left-controls");
-      youtubePlayer = document.querySelector("video");
+  const observer = new MutationObserver(() => {
+    if (!document.querySelector(".bookmark-btn")) {
+      injectBookmarkButton();
+    }
+  });
 
-      if (!youtubeLeftControls || !youtubePlayer) return;
-
-      const bookmarkBtn = document.createElement("button");
-      bookmarkBtn.className = "bookmark-btn"; // Removed ytp-button to avoid constraints
-      bookmarkBtn.title = "Click to bookmark current timestamp (Alt+B)";
-      bookmarkBtn.style.display = "inline-flex";
-      bookmarkBtn.style.alignItems = "center";
-      bookmarkBtn.style.justifyContent = "center";
-      bookmarkBtn.style.verticalAlign = "middle";
-      bookmarkBtn.style.background = "rgba(255, 255, 255, 0.1)";
-      bookmarkBtn.style.border = "none";
-      bookmarkBtn.style.borderRadius = "50%";
-      bookmarkBtn.style.width = "56px";
-      bookmarkBtn.style.height = "56px";
-      bookmarkBtn.style.cursor = "pointer";
-      bookmarkBtn.style.margin = "0 8px";
-      bookmarkBtn.style.transition = "all 0.2s ease";
-      
-      bookmarkBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="red" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-        </svg>
-      `;
-
-      bookmarkBtn.onmouseenter = () => { 
-        bookmarkBtn.style.transform = "scale(1.2)";
-        bookmarkBtn.style.background = "rgba(255, 255, 255, 0.2)";
-      };
-      bookmarkBtn.onmouseleave = () => { 
-        bookmarkBtn.style.transform = "scale(1)";
-        bookmarkBtn.style.background = "rgba(255, 255, 255, 0.1)";
-      };
-
-      youtubeLeftControls.appendChild(bookmarkBtn);
-      bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
+  const startObserver = () => {
+    const controls = document.querySelector(".ytp-left-controls");
+    if (controls) {
+      observer.observe(controls, { childList: true });
+    } else {
+      setTimeout(startObserver, 1000);
     }
   };
 
@@ -145,6 +165,7 @@
     if (type === "NEW") {
       currentVideo = videoId;
       newVideoLoaded();
+      startObserver();
     } else if (type === "PLAY") {
       if (youtubePlayer) youtubePlayer.currentTime = value;
     } else if (type === "DELETE") {
@@ -156,12 +177,13 @@
     }
   });
 
-  // Initial check if we are already on a video page
+  // Initial check
   const urlParams = new URLSearchParams(window.location.search);
   const v = urlParams.get("v");
   if (v) {
     currentVideo = v;
     newVideoLoaded();
+    startObserver();
   }
 })();
 
