@@ -51,35 +51,28 @@
     bookmarkBtn.title = "Save Moment (Alt+B)";
     
     bookmarkBtn.innerHTML = `
-      <span style="font-size: 32px; line-height: 1;">🔖</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+      </svg>
     `;
 
     Object.assign(bookmarkBtn.style, {
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "rgba(0, 0, 0, 0.6)",
-      border: "2px solid #ff4d4d",
-      borderRadius: "12px",
-      width: "52px",
-      height: "52px",
+      background: "transparent",
+      border: "none",
+      width: "40px",
+      height: "40px",
       cursor: "pointer",
-      margin: "0 12px",
-      transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+      margin: "0 4px",
+      transition: "transform 0.2s ease",
       zIndex: "9999",
-      boxShadow: "0 0 10px rgba(255, 77, 77, 0.3)"
+      color: "white"
     });
 
-    bookmarkBtn.onmouseenter = () => { 
-      bookmarkBtn.style.transform = "scale(1.2)";
-      bookmarkBtn.style.background = "rgba(0, 0, 0, 0.8)";
-      bookmarkBtn.style.boxShadow = "0 0 20px rgba(255, 77, 77, 0.6)";
-    };
-    bookmarkBtn.onmouseleave = () => { 
-      bookmarkBtn.style.transform = "scale(1)";
-      bookmarkBtn.style.background = "rgba(0, 0, 0, 0.6)";
-      bookmarkBtn.style.boxShadow = "0 0 10px rgba(255, 77, 77, 0.3)";
-    };
+    bookmarkBtn.onmouseenter = () => { bookmarkBtn.style.transform = "scale(1.2)"; };
+    bookmarkBtn.onmouseleave = () => { bookmarkBtn.style.transform = "scale(1)"; };
     
     bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
     youtubeLeftControls.appendChild(bookmarkBtn);
