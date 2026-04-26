@@ -54,22 +54,35 @@
       if (!youtubeLeftControls || !youtubePlayer) return;
 
       const bookmarkBtn = document.createElement("button");
-      bookmarkBtn.className = "ytp-button bookmark-btn";
+      bookmarkBtn.className = "bookmark-btn"; // Removed ytp-button to avoid constraints
       bookmarkBtn.title = "Click to bookmark current timestamp (Alt+B)";
       bookmarkBtn.style.display = "inline-flex";
       bookmarkBtn.style.alignItems = "center";
       bookmarkBtn.style.justifyContent = "center";
-      bookmarkBtn.style.verticalAlign = "top";
+      bookmarkBtn.style.verticalAlign = "middle";
+      bookmarkBtn.style.background = "rgba(255, 255, 255, 0.1)";
+      bookmarkBtn.style.border = "none";
+      bookmarkBtn.style.borderRadius = "50%";
+      bookmarkBtn.style.width = "56px";
+      bookmarkBtn.style.height = "56px";
+      bookmarkBtn.style.cursor = "pointer";
+      bookmarkBtn.style.margin = "0 8px";
+      bookmarkBtn.style.transition = "all 0.2s ease";
       
       bookmarkBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ff0000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="red" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
       `;
 
-      bookmarkBtn.style.transition = "transform 0.1s ease-in-out";
-      bookmarkBtn.onmouseenter = () => { bookmarkBtn.style.transform = "scale(1.15)"; };
-      bookmarkBtn.onmouseleave = () => { bookmarkBtn.style.transform = "scale(1)"; };
+      bookmarkBtn.onmouseenter = () => { 
+        bookmarkBtn.style.transform = "scale(1.2)";
+        bookmarkBtn.style.background = "rgba(255, 255, 255, 0.2)";
+      };
+      bookmarkBtn.onmouseleave = () => { 
+        bookmarkBtn.style.transform = "scale(1)";
+        bookmarkBtn.style.background = "rgba(255, 255, 255, 0.1)";
+      };
 
       youtubeLeftControls.appendChild(bookmarkBtn);
       bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
