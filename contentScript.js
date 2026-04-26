@@ -69,7 +69,8 @@
       transition: "transform 0.2s ease",
       zIndex: "9999",
       color: "white",
-      marginTop: "4px"
+      position: "relative",
+      top: "10px"
     });
 
     bookmarkBtn.onmouseenter = () => { bookmarkBtn.style.transform = "scale(1.2)"; };
@@ -185,3 +186,5 @@ const getTime = (t) => {
   const timeString = date.toISOString().slice(11, 19);
   return timeString.startsWith("00:") ? timeString.slice(3) : timeString;
 };
+
+
