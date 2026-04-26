@@ -3,47 +3,122 @@
   let currentVideo = "";
   let currentVideoBookmarks = [];
 
-  const fetchBookmarks = () => {
-    return new Promise((resolve) => {
+  const fetchBookmarks = (cb) => {
+    try {
       chrome.storage.sync.get([currentVideo], (obj) => {
-        resolve(obj[currentVideo] ? JSON.parse(obj[currentVideo]) : []);
+        cb(obj[currentVideo] ? JSON.parse(obj[currentVideo]) : []);
       });
-    });
+    } catch {
+      cb([]);
+    }
   };
 
-  const addNewBookmarkEventHandler = async () => {
+  const addNewBookmarkEventHandler = () => {
+    if (!youtubePlayer || !currentVideo) return;
+
     const currentTime = youtubePlayer.currentTime;
     const newBookmark = {
       time: currentTime,
       desc: "Bookmark at " + getTime(currentTime),
     };
 
-    currentVideoBookmarks = await fetchBookmarks();
+    fetchBookmarks((bookmarks) => {
+      // Avoid duplicate bookmarks at exactly the same time
+      if (bookmarks.some(b => Math.floor(b.time) === Math.floor(currentTime))) {
+        showToast("Bookmark already exists for this second!");
+        return;
+      }
 
-    chrome.storage.sync.set({
-      [currentVideo]: JSON.stringify([...currentVideoBookmarks, newBookmark].sort((a, b) => a.time - b.time))
+      const updated = [...bookmarks, newBookmark].sort((a, b) => a.time - b.time);
+
+      chrome.storage.sync.set({
+        [currentVideo]: JSON.stringify(updated),
+      });
+
+      currentVideoBookmarks = updated;
+      showToast("Bookmark added at " + getTime(currentTime));
     });
   };
 
-  const newVideoLoaded = async () => {
-    const bookmarkBtnExists = document.getElementsByClassName("bookmark-btn")[0];
+  const newVideoLoaded = () => {
+    const bookmarkBtnExists = document.querySelector(".bookmark-btn");
 
-    currentVideoBookmarks = await fetchBookmarks();
+    fetchBookmarks((bookmarks) => {
+      currentVideoBookmarks = bookmarks;
+    });
 
     if (!bookmarkBtnExists) {
-      const bookmarkBtn = document.createElement("img");
+      youtubeLeftControls = document.querySelector(".ytp-left-controls");
+      youtubePlayer = document.querySelector("video");
 
-      bookmarkBtn.src = chrome.runtime.getURL("assets/bookmark.png");
-      bookmarkBtn.className = "ytp-button " + "bookmark-btn";
-      bookmarkBtn.title = "Click to bookmark current timestamp";
+      if (!youtubeLeftControls || !youtubePlayer) return;
 
-      youtubeLeftControls = document.getElementsByClassName("ytp-left-controls")[0];
-      youtubePlayer = document.getElementsByClassName('video-stream')[0];
+      const bookmarkBtn = document.createElement("button");
+      bookmarkBtn.className = "ytp-button bookmark-btn";
+      bookmarkBtn.title = "Click to bookmark current timestamp (Alt+B)";
+      bookmarkBtn.style.padding = "0 8px";
+      bookmarkBtn.style.display = "flex";
+      bookmarkBtn.style.alignItems = "center";
+      bookmarkBtn.style.justifyContent = "center";
+      
+      bookmarkBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+      `;
 
       youtubeLeftControls.appendChild(bookmarkBtn);
       bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
     }
   };
+
+  const showToast = (message) => {
+    let toast = document.querySelector(".yt-bookmarker-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "yt-bookmarker-toast";
+      document.body.appendChild(toast);
+
+      const style = document.createElement("style");
+      style.textContent = `
+        .yt-bookmarker-toast {
+          position: fixed;
+          bottom: 100px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: rgba(0, 0, 0, 0.85);
+          color: white;
+          padding: 10px 20px;
+          border-radius: 25px;
+          font-family: Roboto, Arial, sans-serif;
+          font-size: 14px;
+          z-index: 9999;
+          opacity: 0;
+          transition: opacity 0.3s, bottom 0.3s;
+          pointer-events: none;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .yt-bookmarker-toast.show {
+          opacity: 1;
+          bottom: 120px;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    toast.textContent = message;
+    toast.classList.add("show");
+    
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  };
+
+  // Keyboard shortcut listener
+  document.addEventListener("keydown", (e) => {
+    if (e.altKey && e.key.toLowerCase() === "b") {
+      addNewBookmarkEventHandler();
+    }
+  });
 
   chrome.runtime.onMessage.addListener((obj, sender, response) => {
     const { type, value, videoId } = obj;
@@ -52,21 +127,28 @@
       currentVideo = videoId;
       newVideoLoaded();
     } else if (type === "PLAY") {
-      youtubePlayer.currentTime = value;
-    } else if ( type === "DELETE") {
+      if (youtubePlayer) youtubePlayer.currentTime = value;
+    } else if (type === "DELETE") {
       currentVideoBookmarks = currentVideoBookmarks.filter((b) => b.time != value);
-      chrome.storage.sync.set({ [currentVideo]: JSON.stringify(currentVideoBookmarks) });
-
-      response(currentVideoBookmarks);
+      chrome.storage.sync.set({
+        [currentVideo]: JSON.stringify(currentVideoBookmarks),
+      });
+      if (response) response(currentVideoBookmarks);
     }
   });
 
-  newVideoLoaded();
+  // Initial check if we are already on a video page
+  const urlParams = new URLSearchParams(window.location.search);
+  const v = urlParams.get("v");
+  if (v) {
+    currentVideo = v;
+    newVideoLoaded();
+  }
 })();
 
-const getTime = t => {
-  var date = new Date(0);
+const getTime = (t) => {
+  const date = new Date(0);
   date.setSeconds(t);
-
-  return date.toISOString().substr(11, 8);
+  const timeString = date.toISOString().slice(11, 19);
+  return timeString.startsWith("00:") ? timeString.slice(3) : timeString;
 };
