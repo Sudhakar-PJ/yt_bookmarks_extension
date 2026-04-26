@@ -68,7 +68,8 @@
       margin: "0 4px",
       transition: "transform 0.2s ease",
       zIndex: "9999",
-      color: "white"
+      color: "white",
+      marginTop: "4px"
     });
 
     bookmarkBtn.onmouseenter = () => { bookmarkBtn.style.transform = "scale(1.2)"; };
